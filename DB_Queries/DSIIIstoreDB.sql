@@ -6,11 +6,20 @@ go
 
 create table dbo.Product_Category(
 	category_id int Primary key identity(1,1),
-	name varchar(150) not null,
+	caegory_name varchar(150) not null,
 	descripción text not null,
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
 	deleted_state bit not null default 0
+)
+go
+
+create table dbo.Vendor(
+	vendor_id int primary key identity(1,1),
+	vendor_name varchar(120) not null,
+	tel varchar(10) not null default '8099999999',
+	correo varchar(150) not null,
+	dirección varchar(250) not null default 'n/a'
 )
 go
 
@@ -19,12 +28,15 @@ create table dbo.Product(
 	name VARCHAR(100) not null, 
 	descripción text not null,
 	category_id int not null, --foreign key
+	vendor_id int not null, --foreign key
 	price DECIMAL(19,4) not null,
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
 	deleted_state bit not null default 0,
 	constraint FK_productCategory foreign key (category_id)
-	references dbo.Product_Category(category_id)
+	references dbo.Product_Category(category_id),
+	constraint FK_productVendor foreign key (vendor_id)
+	references dbo.Vendor(vendor_id)
 )
 go
 
@@ -62,11 +74,10 @@ create table dbo.Department(
 )
 go
 
-create table dbo.Employee(
-	employee_id	INT Primary key identity(1,1),
+create table dbo.Cashier(
+	cashier_id	INT Primary key identity(1,1),
 	person_id	INT not null, --foreign key
 	work_email	NVARCHAR(250) not null,
-	employee_number	INT not null, 
 	hire_date	DATE not null,
 	department_id	INt not null, --foreign key
 	salary	DECIMAL(10,2) not null,
@@ -79,8 +90,6 @@ create table dbo.Employee(
 	references dbo.Department(department_id)
 )
 go
-
-
 
 create table dbo.Client(
 	client_id	INT Primary key identity(1,1),
@@ -104,12 +113,12 @@ create table dbo.Payment_Details(
 )
 go
 
-create table dbo.Order_Details(
-	details_id	INT Primary key identity(1,1), 
+create table dbo.OrderDetail(
+	order_id	INT Primary key identity(1,1), 
 	client_id	INT not null, --foreign key
 	total	DECIMAL(10,2)not null,
 	payment_id	INT not null, --foreign key
-	employee_id	INT,--foreign key
+	cashier_id	INT,--foreign key
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
 	deleted_state bit not null default 0,
@@ -117,24 +126,26 @@ create table dbo.Order_Details(
 	references dbo.Client(client_id),
 	constraint FK_orderPayment foreign key (payment_id)
 	references dbo.Payment_Details(payment_id),
-	constraint FK_orderEmployee foreign key (employee_id)
-	references dbo.Employee(employee_id)
+	constraint FK_orderCashier foreign key (cashier_id)
+	references dbo.Cashier(cashier_id)
 )
 go
 
 create table dbo.Order_Items(
 	items_id	INT Primary key identity(1,1), 
+	order_id	int not null, --foreign key
 	product_id	INT not null, --foreign key
 	quantity	INT not null,
 	unit_price	DECIMAL(10,2) not null,
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
-	--deleted_state bit not null default 0 --Debería de poder eliminarse los items de una orden
+	deleted_state bit not null default 0, --Debería de poder eliminarse los items de una orden
 	constraint FK_orderProducts foreign key (product_id)
-	references dbo.Product(product_id)
+	references dbo.Product(product_id),
+	constraint FK_orderOrders foreign key (order_id)
+	references dbo.OrderDetail(order_id)
 )
 go
-
 
 create table dbo.Shopping_Cart(
 	cart_id	INT Primary key identity(1,1),
