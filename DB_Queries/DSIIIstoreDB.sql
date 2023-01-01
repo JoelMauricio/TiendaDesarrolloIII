@@ -103,13 +103,25 @@ create table dbo.Client(
 )
 go
 
+create table dbo.Payment_Type(
+	pType_id	INT Primary key identity(1,1),
+	type_name varchar(150) not null,
+	created_at datetime not null default getdate(),
+	last_modification datetime not null default getdate(),
+	deleted_state bit not null default 0
+)
+go
+
 create table dbo.Payment_Details(
 	payment_id	INT Primary key identity(1,1),
 	order_id	INT not null, --foreign key --arreglar order_id
 	amount	DECIMAL(10,2)not null,
+	pType_id int not null,
 	status	BIT not null,
 	created_at datetime not null default getdate(),
-	last_modification datetime not null default getdate()
+	last_modification datetime not null default getdate(),
+	constraint FK_paymentType foreign key (pType_id)
+	references dbo.Payment_Type(pType_id)
 )
 go
 
