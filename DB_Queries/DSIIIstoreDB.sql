@@ -19,9 +19,19 @@ create table dbo.Vendor(
 	vendor_name varchar(120) not null,
 	tel varchar(10) not null default '8099999999',
 	correo varchar(150) not null,
-	dirección varchar(250) not null default 'n/a'
+	dirección varchar(250) not null default 'n/a',
+	created_at datetime not null default getdate(),
+	last_modification datetime not null default getdate(),
+	deleted_state bit not null default 0,
 )
 go
+--modificacion para actualizar la tabla
+--alter table Vendor add 	
+--created_at datetime not null default getdate(),
+--last_modification datetime not null default getdate(),
+--deleted_state bit not null default 0
+--go
+
 
 create table dbo.Product(
 	product_id int Primary key identity(1,1),
