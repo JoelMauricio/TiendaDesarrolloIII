@@ -270,3 +270,71 @@ as
 	where cashier_id = @target
 go
 
+--creando los procedimientos de Person_Address
+create procedure ppInsertAddress
+	@person_id	INT,
+	@address_line1	VARCHAR(150),
+	@address_line2	VARCHAR(15),
+	@city	VARCHAR(150),
+	@postal_code	VARCHAR(10),
+	@country	VARCHAR(150),
+	@telephone	VARCHAR(15),
+	@mobile	VARCHAR(15)
+as
+	Insert into dbo.Person_Address(person_id,address_line1,address_line2,city,postal_code,country,telephone,mobile)
+	values(@person_id,@address_line1,@address_line2,@city,@postal_code,@country,@telephone,@mobile)
+go
+
+create procedure ppReadAddresses
+as
+	select * from dbo.Person_Address where deleted_state = 0
+go
+
+create procedure ppUpdateAddress
+	@target int,
+	@address_line1	VARCHAR(150),
+	@address_line2	VARCHAR(15),
+	@postal_code	VARCHAR(10)
+as
+	update dbo.Person_Address
+	set address_line1 = @address_line1, address_line2 =@address_line2, postal_code = @postal_code, last_modification = GETDATE()
+	where address_id = @target
+go
+
+create procedure ppDeleteAddress
+	@target int
+as
+	update dbo.Person_Address
+	set deleted_state = 1, last_modification = GETDATE()
+	where address_id = @target
+go
+
+--creando procedimientos de paymentType
+create procedure ppInsertPayType
+	@type_name varchar(150)
+as
+	insert into dbo.Payment_Type(type_name) values(@type_name)
+go
+
+create procedure ppReadPayTypes
+as
+	Select * from dbo.Payment_Type where deleted_state = 0
+go
+
+create procedure ppUpdatePayType
+	@target int,
+	@newType_name varchar(150)
+as
+	update dbo.Payment_Type
+	set type_name = @newType_name, last_modification = GETDATE()
+	where pType_id = @target
+go
+
+create procedure ppDeletePayType
+	@target int
+as
+	update dbo.Payment_Type
+	set deleted_state = 1, last_modification = getdate()
+	where pType_id = @target
+go
+
