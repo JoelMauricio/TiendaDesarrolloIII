@@ -87,7 +87,7 @@ create procedure ppUpdateInventory --pendiete por modificacion
 	@newQuantity int
 as
 	update dbo.Product_Inventory set quantity = @newQuantity, last_modification = GETDATE()
-	where quantity = @newQuantity
+	where product_id = @productTarget and deleted_state = 0
 go
 
 create procedure ppDeleteInventory
@@ -156,7 +156,7 @@ create procedure ppInsertPerson
 	@email	NVARCHAR(254),
 	@citizen_id	VARCHAR(22)
 as
-	insert into dbo.Person(first_name,last_name,email,phone) values (@first_name,@last_name,@email,@phone)
+	insert into dbo.Person(first_name,last_name,email,phone,citizen_id) values (@first_name,@last_name,@email,@phone,@citizen_id)
 go
 
 create procedure ppReadPersons
@@ -189,7 +189,7 @@ create procedure ppInsertClient
 as
 	if not exists (select 1 from dbo.Person where person_id = @person_id)
 		begin
-			exec ppInsertPerson @first_name = @username, @last_name = '', @phone = '8099999999', @email = @secondary_email, @citizen_id = ''
+			exec ppInsertPerson @first_name = @username, @last_name = '', @phone = '8099999999', @email = @secondary_email, @citizen_id = 'pending'
 
 			declare @tempID int set @tempID = SCOPE_IDENTITY()
 
@@ -367,11 +367,12 @@ go
 
 --creando los procedimientos de shoppingCart
 create procedure ppInsertCart
+	@cart_id int,
 	@product_id	INT,
 	@client_id	int,
 	@quantity	INT
 as
-	insert into dbo.Shopping_Cart(product_id,client_id,quantity) values(@product_id,@client_id,@quantity)
+	insert into dbo.Shopping_Cart(cart_id,product_id,client_id,quantity) values(@cart_id,@product_id,@client_id,@quantity)
 go
 
 create procedure ppReadCarts
