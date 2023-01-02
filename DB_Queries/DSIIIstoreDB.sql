@@ -4,6 +4,8 @@ go
 use storeDB
 go
 
+--drop database storeDB
+
 create table dbo.Product_Category(
 	category_id int Primary key identity(1,1),
 	caegory_name varchar(150) not null,
@@ -75,29 +77,31 @@ create table dbo.Person(
 )
 go
 
-create table dbo.Department(
-	department_id	INT Primary key identity(1,1),
-	department_name	VARCHAR(150) not null,
-	created_at datetime not null default getdate(),
-	last_modification datetime not null default getdate(),
-	deleted_state bit not null default 0
-)
-go
+--no es realmente necesario
+
+--create table dbo.Department(
+--	department_id	INT Primary key identity(1,1),
+--	department_name	VARCHAR(150) not null,
+--	created_at datetime not null default getdate(),
+--	last_modification datetime not null default getdate(),
+--	deleted_state bit not null default 0
+--)
+--go
 
 create table dbo.Cashier(
 	cashier_id	INT Primary key identity(1,1),
 	person_id	INT not null, --foreign key
 	work_email	NVARCHAR(250) not null,
 	hire_date	DATE not null,
-	department_id	INt not null, --foreign key
+	--department_id	INt not null, --foreign key
 	salary	DECIMAL(10,2) not null,
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
 	deleted_state bit not null default 0,
 	constraint FK_employeePerson foreign key (person_id)
-	references dbo.Person(person_id),
-	constraint FK_employeeDepartment foreign key (department_id)
-	references dbo.Department(department_id)
+	references dbo.Person(person_id)--,
+	--constraint FK_employeeDepartment foreign key (department_id)
+	--references dbo.Department(department_id)
 )
 go
 
