@@ -403,3 +403,88 @@ as
 go
 
 --create procedure for orderdetails
+Create procedure ppInsertOrder
+	@client_id	INT,
+	--@payment_id	INT, --no debe tener esto
+	@cashier_id	INT
+as
+	insert into dbo.OrderDetail(client_id/*,payment_id*/,cashier_id)
+	values (@client_id/*,@payment_id*/,@cashier_id)
+go
+
+create procedure ppReadOrders
+as
+	select * from dbo.OrderDetail where deleted_state = 0
+go
+
+create procedure ppUpdateOrder
+	@targetOrder int,
+	@total int
+as
+	update dbo.OrderDetail
+	set total = total + @total, last_modification = getdate()
+	where order_id = @targetOrder and deleted_state <> 1
+go
+
+create procedure ppDeleteOrder
+	@targetOrder int
+as 
+	update dbo.OrderDetail
+	set deleted_state = 1, last_modification = GETDATE()
+	where order_id = @targetOrder and deleted_state <> 1
+go
+
+--creando procedimientos para Order_items
+create procedure ppInsertOrderItem
+	@order_id	int,
+	@product_id	INT,
+	@quantity	INT,
+	@unit_price DECIMAL(10,2),
+	@clientId int
+as
+	declare @currentTotal DECIMAL(10,2) set @currentTotal = @unit_price * @quantity
+
+	if not exists (select 1 from dbo.OrderDetail where order_id = @order_id)
+		begin
+			exec ppInsertOrder @client_id = @clientId, @cashier_id = null
+
+			declare @tempOrderId int set @tempOrderId = SCOPE_IDENTITY()
+
+			insert into dbo.Order_Items(order_id,product_id,quantity,unit_price)
+			values (@tempOrderId,@product_id,@quantity,@unit_price)
+
+			exec ppUpdateOrder @TargetOrder = @tempOrderId, @total = @currentTotal
+		end
+	else
+		begin
+			insert into dbo.Order_Items(order_id,product_id,quantity,unit_price)
+			values (@order_id,@product_id,@quantity,@unit_price)
+
+			exec ppUpdateOrder @TargetOrder = @tempOrderId, @total = @currentTotal
+		end
+go
+
+create procedure ppReadOrderItems
+	@order_Id int
+as
+	select * from dbo.Order_Items where order_id = @order_Id and deleted_state = 0
+go
+
+create procedure ppUpdateOrderItem
+	@item_Id int,
+	@quantity int
+as
+	--agregar update de la entidad orderDetail para restar le viejo curretTotal del item en cuestion y luego sumar el nuevo currentTotal 
+
+	update dbo.Order_Items
+	set quantity = @quantity, last_modification = GETDATE()
+	where items_id = @item_Id and deleted_state <> 1
+go
+
+create procedure ppDeleteOrderItem
+	@item_Id int
+as
+	update dbo.Order_Items
+	set deleted_state = 1, last_modification = GETDATE()
+	where items_id = @item_Id and deleted_state = 0
+go
