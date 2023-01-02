@@ -148,4 +148,125 @@ as
 	end
 go
 
---
+--procedimientos para Person
+create procedure ppInsertPerson
+	@first_name	VARCHAR(50),
+	@last_name	VARCHAR(50),
+	@phone	VARCHAR(15),
+	@email	NVARCHAR(254),
+	@citizen_id	VARCHAR(22)
+as
+	insert into dbo.Person(first_name,last_name,email,phone) values (@first_name,@last_name,@email,@phone)
+go
+
+create procedure ppReadPersons
+as
+	select * from dbo.Person where deleted_state = 0
+go
+
+create procedure ppUpdatePerson
+	@target int,
+	@newEmail nvarchar(254),
+	@newPhone varchar(15)
+as
+	update dbo.Person set email = @newEmail, phone = @newPhone, last_modification = GETDATE()
+	where person_id = @target
+go
+
+create procedure ppDeletePerson
+	@target int
+as
+	update dbo.Person set deleted_state = 1, last_modification = GETDATE()
+	where person_id = @target
+go	
+
+--creando procedimientos para Client
+create procedure ppInsertClient
+	@person_id	INT,
+	@secondary_email	NVARCHAR(250),
+	@username	NVARCHAR(60),
+	@password	CHAR(64)
+as
+	if not exists (select 1 from dbo.Person where person_id = @person_id)
+		begin
+			exec ppInsertPerson @first_name = @username, @last_name = '', @phone = '8099999999', @email = @secondary_email, @citizen_id = ''
+
+			declare @tempID int set @tempID = SCOPE_IDENTITY()
+
+			insert into dbo.Client(person_id,username,secondary_email,password) 
+			values(@tempID,@username,@secondary_email,@password)
+		end
+	else
+		begin
+			insert into dbo.Client(person_id,username,secondary_email,password) 
+			values(@person_id,@username,@secondary_email,@password)
+		end	
+go
+
+create procedure ppReadClients
+as
+	select * from dbo.Client where deleted_state = 0
+go
+
+create procedure ppUpdateClient
+	@target int,
+	@username nvarchar(60),
+	@password char(64),
+	@secondary_email nvarchar(250)
+as
+	update dbo.Client set username = @username,secondary_email = @secondary_email, password = @password, last_modification = GETDATE()
+	where client_id = @target
+go
+
+create procedure ppDeleteClient
+	@target int
+as
+	update dbo.Client set deleted_state = 1, last_modification = GETDATE()
+	where client_id = @target
+go
+
+--creando los procedimientod de Cashier
+create procedure ppInsertCashier
+	@person_id	INT,
+	@work_email	NVARCHAR(250),
+	@hire_date	DATE,
+	@salary	DECIMAL(10,2),
+	@nombre varchar(100)
+as
+	if not exists (select 1 from dbo.Person where person_id = @person_id)
+		begin
+			exec ppInsertPerson @first_name = @nombre, @last_name = '', @phone = '8099999999', @email = @work_email, @citizen_id = ''
+
+			declare @tempID int set @tempID = SCOPE_IDENTITY()
+
+			insert into dbo.Cashier(person_id,work_email,hire_date,salary)
+			values(@tempID,@work_email,iif(@hire_date is null, getdate(), @hiredate),@salary)
+		end
+	else
+		begin
+			insert into dbo.Cashier(person_id,work_email,hire_date,salary)
+			values(@person_id,@work_email,iif(@hire_date is null, getdate(), @hiredate),@salary)
+		end	
+go
+
+create procedure ppReadCashiers
+as
+	select * from dbo.Cashier where deleted_state = 0
+go
+
+create procedure ppUpdateCashier
+	@target int,
+	@newWork_email	NVARCHAR(250),
+	@newSalary	DECIMAL(10,2)
+as
+	update dbo.Cashier set work_email = @newWork_email,salary = @newSalary,last_modification = GETDATE()
+	where cashier_id = @target
+go
+
+create procedure ppDeleteCashier
+	@target int
+as
+	update dbo.Cashier set deleted_state = 1, last_modification = GETDATE()
+	where cashier_id = @target
+go
+
