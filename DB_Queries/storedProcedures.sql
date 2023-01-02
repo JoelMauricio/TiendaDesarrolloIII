@@ -240,12 +240,12 @@ as
 			declare @tempID int set @tempID = SCOPE_IDENTITY()
 
 			insert into dbo.Cashier(person_id,work_email,hire_date,salary)
-			values(@tempID,@work_email,iif(@hire_date is null, getdate(), @hiredate),@salary)
+			values(@tempID,@work_email,iif(@hire_date is null, getdate(), @hire_date),@salary)
 		end
 	else
 		begin
 			insert into dbo.Cashier(person_id,work_email,hire_date,salary)
-			values(@person_id,@work_email,iif(@hire_date is null, getdate(), @hiredate),@salary)
+			values(@person_id,@work_email,iif(@hire_date is null, getdate(), @hire_date),@salary)
 		end	
 go
 
@@ -471,14 +471,22 @@ as
 go
 
 create procedure ppUpdateOrderItem
-	@item_Id int,
+	@targetItem int,
+	@targetOrderId INT,
 	@quantity int
 as
-	--agregar update de la entidad orderDetail para restar le viejo curretTotal del item en cuestion y luego sumar el nuevo currentTotal 
+	begin
+		--agregar update de la entidad orderDetail para restar le viejo curretTotal del item en cuestion y luego sumar el nuevo currentTotal 
+		declare @oldTotal DECIMAL(10,2) set @oldTotal = -(select top 1 quantity*unit_price from dbo.Order_Items where items_id = @targetItem)
+		exec ppUpdateOrder @targetOrder = @targetOrderId, @total = @oldTotal
 
-	update dbo.Order_Items
-	set quantity = @quantity, last_modification = GETDATE()
-	where items_id = @item_Id and deleted_state <> 1
+		update dbo.Order_Items
+		set quantity = @quantity, last_modification = GETDATE()
+		where items_id = @targetItem and deleted_state <> 1
+
+		declare @newTotal Decimal(10,2) set @newTotal = (select top 1 quantity*unit_price from dbo.Order_Items where items_id = @targetItem)
+		exec ppUpdateOrder @targetOrder = @targetOrderId, @total = @newTotal
+	end
 go
 
 create procedure ppDeleteOrderItem
