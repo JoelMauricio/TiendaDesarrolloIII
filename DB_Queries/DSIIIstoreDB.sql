@@ -173,10 +173,10 @@ create table dbo.Order_Items(
 )
 go
 
-create table dbo.Shopping_Cart(
-	cart_id	INT Primary key identity(1,1),
-	product_id	INT not null, --foreign key
+create table dbo.Shopping_Cart( -- revisar entidad
+	cart_id	INT Primary key identity(1,1), --no puede ser llave primaria sola
 	client_id	int not null, --foreign key
+	product_id	INT not null, --foreign key
 	quantity	INT not null,
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
