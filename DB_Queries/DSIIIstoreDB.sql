@@ -142,8 +142,8 @@ go
 create table dbo.OrderDetail(
 	order_id	INT Primary key identity(1,1), 
 	client_id	INT not null, --foreign key
-	total	DECIMAL(10,2)not null,
-	payment_id	INT not null, --foreign key
+	total	DECIMAL(10,2)not null default 0,
+	payment_id	INT not null, --foreign key -- no debe tener esto
 	cashier_id	INT,--foreign key
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
