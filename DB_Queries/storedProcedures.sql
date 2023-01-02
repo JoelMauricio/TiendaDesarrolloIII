@@ -33,7 +33,7 @@ create procedure pDeleteCategory
 as
 update dbo.Product_Category
 set deleted_state = 1, last_modification = GETDATE()
-where category_id = @target
+where category_id = @target and deleted_state = 0
 go
 
 --procedimientos de Vendedores
@@ -66,7 +66,7 @@ create procedure ppDeleteVendor
 as
 update dbo.Vendor
 set deleted_state = 1, last_modification = GETDATE()
-where vendor_id = @target
+where vendor_id = @target and deleted_state = 0
 go
 
 --procedimientos de la tabla Product_Inventory
@@ -94,7 +94,7 @@ create procedure ppDeleteInventory
 	@productTarget int
 as
 	update dbo.Product_Inventory set deleted_state = 1, last_modification = GETDATE()
-	where product_id = @productTarget
+	where product_id = @productTarget and deleted_state = 0
 go
 
 --procedimientos de Producto
@@ -142,7 +142,7 @@ create procedure ppDeleteProduct
 as
 	begin
 		update dbo.Product set deleted_state = 1, last_modification = GETDATE()
-		where product_id = @target
+		where product_id = @target and deleted_state = 0
 
 		exec ppDeleteInventory @productTarget = @target
 	end
@@ -177,7 +177,7 @@ create procedure ppDeletePerson
 	@target int
 as
 	update dbo.Person set deleted_state = 1, last_modification = GETDATE()
-	where person_id = @target
+	where person_id = @target and deleted_state = 0
 go	
 
 --creando procedimientos para Client
@@ -222,7 +222,7 @@ create procedure ppDeleteClient
 	@target int
 as
 	update dbo.Client set deleted_state = 1, last_modification = GETDATE()
-	where client_id = @target
+	where client_id = @target and deleted_state = 0
 go
 
 --creando los procedimientod de Cashier
@@ -267,7 +267,7 @@ create procedure ppDeleteCashier
 	@target int
 as
 	update dbo.Cashier set deleted_state = 1, last_modification = GETDATE()
-	where cashier_id = @target
+	where cashier_id = @target and deleted_state = 0
 go
 
 --creando los procedimientos de Person_Address
@@ -306,7 +306,7 @@ create procedure ppDeleteAddress
 as
 	update dbo.Person_Address
 	set deleted_state = 1, last_modification = GETDATE()
-	where address_id = @target
+	where address_id = @target and deleted_state = 0
 go
 
 --creando procedimientos de paymentType
@@ -335,6 +335,71 @@ create procedure ppDeletePayType
 as
 	update dbo.Payment_Type
 	set deleted_state = 1, last_modification = getdate()
-	where pType_id = @target
+	where pType_id = @target and deleted_state = 0
 go
 
+--procedimientos para la tabla payment_details
+create procedure ppInsertPayDetail
+	@order_id	INT,
+	@amount	DECIMAL(10,2),
+	@pType_id int
+as
+	insert into dbo.Payment_Details(order_id,amount,pType_id,status)
+	values (@order_id,@amount,@pType_id,0)
+go
+
+create procedure ppReadPayDetails
+as
+	select * from dbo.Payment_Details
+go
+
+create procedure ppUpdatePayDetail
+	@target int,
+	@newAmount decimal(10,2),
+	@status bit
+as
+	update dbo.Payment_Details
+	set amount = iif(@newAmount is null, amount, @newAmount), status = @status, last_modification = GETDATE()
+	where payment_id = @target
+go
+
+--No tiene delete
+
+--creando los procedimientos de shoppingCart
+create procedure ppInsertCart
+	@product_id	INT,
+	@client_id	int,
+	@quantity	INT
+as
+	insert into dbo.Shopping_Cart(product_id,client_id,quantity) values(@product_id,@client_id,@quantity)
+go
+
+create procedure ppReadCarts
+as
+	select * from dbo.Shopping_Cart where deleted_state = 0 --una vez se haya cerrado la compra estos son "borrados"
+go
+
+create procedure ppUpdateCart
+	@targetProduct int,
+	@targetClient int,
+	@newQuantity int
+as
+begin
+	declare @cartID int set @cartID = 
+	(select top 1 cart_id from dbo.Shopping_Cart where product_id = @targetProduct and client_id = @targetClient and deleted_state = 0 order by cart_id desc)
+	update dbo.Shopping_Cart
+	set quantity = @newQuantity, last_modification = GETDATE()
+	where cart_id = @cartId and product_id = @targetProduct and client_id = @targetClient
+end
+go
+
+create procedure ppDeleteCart
+	@targetClient int,
+	@targetCart int
+as
+	update dbo.Shopping_Cart
+	set deleted_state = 1, last_modification = GETDATE()
+	where client_id = @targetClient and cart_id = @targetCart and deleted_state = 0
+go
+
+--create procedure for orderdetails
