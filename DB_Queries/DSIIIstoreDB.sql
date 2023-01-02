@@ -143,15 +143,15 @@ create table dbo.OrderDetail(
 	order_id	INT Primary key identity(1,1), 
 	client_id	INT not null, --foreign key
 	total	DECIMAL(10,2)not null default 0,
-	payment_id	INT not null, --foreign key -- no debe tener esto
+	--payment_id	INT not null, --foreign key -- no debe tener esto
 	cashier_id	INT,--foreign key
 	created_at datetime not null default getdate(),
 	last_modification datetime not null default getdate(),
 	deleted_state bit not null default 0,
 	constraint FK_orderClient foreign key (client_id)
 	references dbo.Client(client_id),
-	constraint FK_orderPayment foreign key (payment_id)
-	references dbo.Payment_Details(payment_id),
+	--constraint FK_orderPayment foreign key (payment_id)
+	--references dbo.Payment_Details(payment_id),
 	constraint FK_orderCashier foreign key (cashier_id)
 	references dbo.Cashier(cashier_id)
 )
@@ -174,7 +174,7 @@ create table dbo.Order_Items(
 go
 
 create table dbo.Shopping_Cart( -- revisar entidad
-	cart_id	INT Primary key identity(1,1), --no puede ser llave primaria sola
+	cart_id	INT /*primary key identity(1,1)*/ not null, --no puede ser llave primaria sola
 	client_id	int not null, --foreign key
 	product_id	INT not null, --foreign key
 	quantity	INT not null,
@@ -184,7 +184,8 @@ create table dbo.Shopping_Cart( -- revisar entidad
 	constraint FK_cartProducts foreign key (product_id)
 	references dbo.Product(product_id),
 	constraint FK_cartClient foreign key (client_id)
-	references dbo.Client(client_id)
+	references dbo.Client(client_id),
+	unique(cart_id,client_id,product_id)
 )
 go
 
